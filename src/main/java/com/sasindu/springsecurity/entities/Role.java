@@ -1,6 +1,6 @@
 package com.sasindu.springsecurity.entities;
 
-import com.sasindu.springsecurity.abstractions.enums.UserRole;
+import com.sasindu.springsecurity.abstractions.enums.AppUserRoles;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,5 +19,5 @@ public class Role {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private UserRole name;
+    private AppUserRoles name;
 }

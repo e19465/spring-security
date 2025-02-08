@@ -1,6 +1,6 @@
 package com.sasindu.springsecurity.data;
 
-import com.sasindu.springsecurity.abstractions.enums.UserRole;
+import com.sasindu.springsecurity.abstractions.enums.AppUserRoles;
 import com.sasindu.springsecurity.entities.Role;
 import com.sasindu.springsecurity.repository.IRoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +29,8 @@ public class DataInitializer implements ApplicationListener<ApplicationReadyEven
      * Initialize roles in application startup
      */
     private void initializeRoles() {
-        List<UserRole> roles = Arrays.asList(UserRole.ADMIN, UserRole.USER);
-        for (UserRole role : roles) {
+        List<AppUserRoles> roles = Arrays.asList(AppUserRoles.ROLE_ADMIN, AppUserRoles.ROLE_USER);
+        for (AppUserRoles role : roles) {
             if (!IRoleRepository.existsByName(role)) {
                 IRoleRepository.save(new Role(null, role));
             }

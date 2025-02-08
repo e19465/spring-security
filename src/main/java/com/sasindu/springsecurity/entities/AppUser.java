@@ -33,7 +33,7 @@ public class AppUser implements UserDetails {
     @Column (nullable = false, unique = true, length = 200)
     private String email;
 
-    @Column (nullable = false, length = 50)
+    @Column (nullable = false, length = 500)
     private String password;
 
     @Column (nullable = false, length = 50)
@@ -49,29 +49,31 @@ public class AppUser implements UserDetails {
 
     @Override
     public String getUsername() {
-        return "";
+        return email;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
+         return UserDetails.super.isAccountNonExpired();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+         return UserDetails.super.isAccountNonLocked();
+
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
+         return UserDetails.super.isCredentialsNonExpired();
     }
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        // return UserDetails.super.isEnabled();
+//        return isEmailVerified;
+        return true;
     }
-
 
     /**
      * This method is used to convert the AppUser entity to a UserResponseDto object.

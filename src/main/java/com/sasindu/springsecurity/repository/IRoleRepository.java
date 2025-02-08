@@ -1,6 +1,6 @@
 package com.sasindu.springsecurity.repository;
 
-import com.sasindu.springsecurity.abstractions.enums.UserRole;
+import com.sasindu.springsecurity.abstractions.enums.AppUserRoles;
 import com.sasindu.springsecurity.entities.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -15,5 +15,5 @@ public interface IRoleRepository extends JpaRepository<Role, Long> {
      * @param role the role to check
      * @return true if the role exists, false otherwise
      */
-    boolean existsByName(UserRole role);
+    boolean existsByName(AppUserRoles role);
 }
