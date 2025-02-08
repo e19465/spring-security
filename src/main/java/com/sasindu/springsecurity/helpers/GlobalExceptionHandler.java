@@ -4,6 +4,7 @@ package com.sasindu.springsecurity.helpers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -39,6 +40,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleAuthorizationDeniedException(Exception e) {
         String message = "Access denied";
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value())
+                .body(new ApiResponse(message, null, null));
+    }
+
+
+    /**
+     * Handle HttpRequestMethodNotSupportedException
+     * @param e - Exception
+     * @return ResponseEntity<ApiResponse>
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse> handleHttpRequestMethodNotSupportedException(Exception e) {
+        String message = "Method not allowed";
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED.value())
                 .body(new ApiResponse(message, null, null));
     }
 

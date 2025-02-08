@@ -1,5 +1,10 @@
 package com.sasindu.springsecurity.helpers;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Arrays;
+
 public class HelperUtilMethods {
 
     /**
@@ -31,5 +36,24 @@ public class HelperUtilMethods {
         // At least 1 upper case letter
         // At least 1 special character
         return password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$");
+    }
+
+
+
+    /**
+     * This method is used to get the cookies from a request
+     * @param request The request object
+     * @return The cookies as a map
+     */
+    public static String getCookieFromRequest(HttpServletRequest request, String cookieName) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            return Arrays.stream(cookies)
+                    .filter(cookie -> cookie.getName().equals(cookieName))
+                    .findFirst()
+                    .map(Cookie::getValue)
+                    .orElse(null);
+        }
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-package com.sasindu.springsecurity.abstractions.dto.request.user;
+package com.sasindu.springsecurity.abstractions.dto.request.auth;
 
 
 import lombok.Data;

@@ -1,16 +1,15 @@
 package com.sasindu.springsecurity.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sasindu.springsecurity.helpers.HelperUtilMethods;
 import com.sasindu.springsecurity.security.services.AppUserDetailsService;
 import io.jsonwebtoken.JwtException;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,9 +31,20 @@ public class JWTAuthFilter extends OncePerRequestFilter {
     @Autowired
     private AppUserDetailsService userDetailsService;
 
-    @Value("${jwt.type.cookie.based}")
-    private String isCookieBased;
+    // Use this approach if you want to change header based or cookie based JWT
+    //    @Value("${jwt.type.cookie.based}")
+    //    private String isCookieBased;
 
+
+    /**
+     * Filter to authenticate requests - overridden method from OncePerRequestFilter
+     *
+     * @param request The request object
+     * @param response The response object
+     * @param filterChain The filter chain object
+     * @throws ServletException If an error occurs
+     * @throws IOException If an error occurs
+     */
     @Override
     protected void doFilterInternal(
             @Nullable HttpServletRequest request,
@@ -86,31 +96,33 @@ public class JWTAuthFilter extends OncePerRequestFilter {
      * @return JWT token
      */
     private String parseJwt(HttpServletRequest request) {
-        boolean isCookieBased = this.isCookieBased.equals("true");
-        if (isCookieBased) {
-            return getAccessTokenFromCookie(request);
-        } else{
-            return getAccessTokenFromHeader(request);
-        }
+    //        boolean isCookieBased = this.isCookieBased.equals("true");
+    //        if (isCookieBased) {
+    //            return getAccessTokenFromCookie(request);
+    //        } else{
+    //            return getAccessTokenFromHeader(request);
+    //        }
+        return getAccessTokenFromCookie(request);
     }
 
 
-    /**
-     * Get JWT from the header
-     *
-     * @param request the request object
-     * @return JWT token
-     */
-    private String getAccessTokenFromHeader(HttpServletRequest request) {
-        boolean isCookieBased = this.isCookieBased.equals("true");
-        String headerAuth = request.getHeader("Authorization");
-
-        if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7);
-        }
-
-        return null;
-    }
+    // FOR HEADER BASED JWT
+    //    /**
+    //     * Get JWT from the header
+    //     *
+    //     * @param request the request object
+    //     * @return JWT token
+    //     */
+    //    private String getAccessTokenFromHeader(HttpServletRequest request) {
+    //        boolean isCookieBased = this.isCookieBased.equals("true");
+    //        String headerAuth = request.getHeader("Authorization");
+    //
+    //        if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
+    //            return headerAuth.substring(7);
+    //        }
+    //
+    //        return null;
+    //    }
 
 
     /**
@@ -120,15 +132,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
      * @return JWT token
      */
     private String getAccessTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("access")) {
-                    return cookie.getValue();
-                }
-            }
-            return null;
-        }
-        return null;
+        return HelperUtilMethods.getCookieFromRequest(request, "access");
     }
 }

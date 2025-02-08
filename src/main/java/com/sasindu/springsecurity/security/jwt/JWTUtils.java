@@ -106,7 +106,7 @@ public class JWTUtils {
      * @param token The refresh token
      * @return The user id
      */
-    public Long getIdFromRefreshToken(String token) {
+    public Long getUserIdFromRefreshToken(String token) {
         try {
             return extractClaimsFromToken(token, refreshKey()).get("userId", Long.class);
         } catch (Exception e) {

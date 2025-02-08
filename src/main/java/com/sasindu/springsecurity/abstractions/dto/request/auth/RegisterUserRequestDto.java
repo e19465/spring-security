@@ -1,9 +1,9 @@
-package com.sasindu.springsecurity.abstractions.dto.request.user;
+package com.sasindu.springsecurity.abstractions.dto.request.auth;
 
 import lombok.Data;
 
 @Data
-public class AddUserRequestDto {
+public class RegisterUserRequestDto {
     private String firstName;
     private String lastName = "";
     private String email;
