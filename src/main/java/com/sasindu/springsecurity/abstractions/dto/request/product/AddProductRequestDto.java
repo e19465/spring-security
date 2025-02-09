@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 public class AddProductRequestDto {
     private String name;
-    private Long categoryId;
+    private String categoryName;
 }

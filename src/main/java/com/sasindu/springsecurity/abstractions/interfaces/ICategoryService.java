@@ -46,4 +46,12 @@ public interface ICategoryService {
      * @param categoryId Long
      */
     void deleteCategory(Long categoryId);
+
+
+    /**
+     * Get a category by name
+     * @param name String
+     * @return Category
+     */
+    Category getCategoryByName(String name);
 }

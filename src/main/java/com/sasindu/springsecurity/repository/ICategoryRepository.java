@@ -23,4 +23,12 @@ public interface ICategoryRepository extends JpaRepository<Category, Long> {
      * @return List<Category>
      */
     List<Category> findAllByNameContaining(String search);
+
+
+    /**
+     * Find a category by name
+     * @param name String
+     * @return Category
+     */
+    Category findByName(String name);
 }

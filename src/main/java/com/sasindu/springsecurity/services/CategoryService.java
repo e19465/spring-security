@@ -129,4 +129,22 @@ public class CategoryService implements ICategoryService {
             throw new RuntimeException(e.getMessage());
         }
     }
+
+
+    /**
+     * Get a category by name
+     * @param name String
+     * @return Category
+     */
+    @Override
+    public Category getCategoryByName(String name) {
+        try {
+            return _categoryRepository.findByName(name);
+        } catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 }
