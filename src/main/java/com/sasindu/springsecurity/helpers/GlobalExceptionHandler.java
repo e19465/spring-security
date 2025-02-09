@@ -7,6 +7,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.nio.file.AccessDeniedException;
 
@@ -53,6 +54,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleHttpRequestMethodNotSupportedException(Exception e) {
         String message = "Method not allowed";
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                .body(new ApiResponse(message, null, null));
+    }
+
+
+    /**
+     * Handle NoResourceFoundException
+     * @param e - Exception
+     * @return ResponseEntity<ApiResponse>
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse> handleNoResourceFoundException(Exception e) {
+        String message = "Resource not found";
+        return ResponseEntity.status(HttpStatus.NOT_FOUND.value())
                 .body(new ApiResponse(message, null, null));
     }
 }

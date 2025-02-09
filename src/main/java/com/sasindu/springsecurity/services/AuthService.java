@@ -13,6 +13,7 @@ import com.sasindu.springsecurity.constants.ApplicationConstants;
 import com.sasindu.springsecurity.entities.AppUser;
 import com.sasindu.springsecurity.entities.UserOtp;
 import com.sasindu.springsecurity.exceptions.BadRequestException;
+import com.sasindu.springsecurity.exceptions.ConflictException;
 import com.sasindu.springsecurity.exceptions.ForbiddenException;
 import com.sasindu.springsecurity.exceptions.UnAuthorizedException;
 import com.sasindu.springsecurity.helpers.HelperUtilMethods;
@@ -101,7 +102,7 @@ public class AuthService implements IAuthService {
             AppUser user = new AppUser();
 
             if(_userRepository.existsByEmail(request.getEmail())){
-                throw new BadRequestException("Email is already taken");
+                throw new ConflictException("Email is already taken");
             }
 
             if(!Objects.equals(request.getPassword(), request.getConfirmPassword())){

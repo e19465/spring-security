@@ -25,8 +25,12 @@ public class ApplicationConstants {
             "/api/v1/auth/**",
             "/api/v1/public/**",
     };
+    private static final String[] PUBLIC_API_CATEGORY_URLS = new String[]{
+            "/api/v1/category/get-by-id/**",
+            "/api/v1/category/get-all/**",
+    };
     // Combine multiple arrays into one
-    public static final String[] PUBLIC_URLS = combineArrays(PUBLIC_APPLICATION_URLS, PUBLIC_API_SHARED_URLS);
+    public static final String[] PUBLIC_URLS = combineArrays(PUBLIC_APPLICATION_URLS, PUBLIC_API_SHARED_URLS, PUBLIC_API_CATEGORY_URLS);
 
 
     //!  CORS Configuration

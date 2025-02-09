@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.NaturalId;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -24,10 +23,8 @@ public class Category {
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NaturalId
     @Column (nullable = false, unique = true)
     private String name;
-
 
     @OneToMany (mappedBy = "category" , cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Product> products = new HashSet<>();
