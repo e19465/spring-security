@@ -7,6 +7,7 @@ import com.sasindu.springsecurity.abstractions.dto.request.auth.ResetPasswordReq
 import com.sasindu.springsecurity.abstractions.dto.request.auth.VerifyEmailRequestDto;
 import com.sasindu.springsecurity.abstractions.enums.AppUserRoles;
 import com.sasindu.springsecurity.abstractions.interfaces.IAuthService;
+import com.sasindu.springsecurity.constants.ApplicationConstants;
 import com.sasindu.springsecurity.entities.AppUser;
 import com.sasindu.springsecurity.exceptions.BadRequestException;
 import com.sasindu.springsecurity.exceptions.ForbiddenException;
@@ -19,16 +20,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 
 /**
@@ -41,6 +41,7 @@ public class AuthService implements IAuthService {
     private final JWTUtils _jwtUtils;
     private final PasswordEncoder _passwordEncoder;
     private final AuthenticationManager _authenticationManager;
+    private final EmailNotificationService _emailNotificationService;
 
     @Value("${application.environment}")
     String environment;
@@ -108,9 +109,17 @@ public class AuthService implements IAuthService {
                 throw new BadRequestException("Password is not strong enough");
             }
 
+            String otp = HelperUtilMethods.generateOtp();
+
             user.setPassword(_passwordEncoder.encode(request.getPassword()));
             user.setEmail(request.getEmail());
             user.setRole(AppUserRoles.ROLE_USER.toString());
+            user.setEmailOtp(otp);
+
+            System.out.println("OTP: " + otp);
+
+            user.setEmailOtpExpires(LocalDateTime.now().plusMinutes(ApplicationConstants.EMAIL_OTP_EXPIRATION_MINUTES));
+            _emailNotificationService.sendEmailVerificationOtpEmail(request.getEmail(), otp);
             return _userRepository.save(user);
         } catch (RuntimeException e){
             throw e;
@@ -139,6 +148,10 @@ public class AuthService implements IAuthService {
             // Get authenticated user directly from auth object
             AppUser user = (AppUser) auth.getPrincipal();
 
+            if(!user.isEnabled()){
+                throw new ForbiddenException("Please verify your email to login");
+            }
+
             String access = _jwtUtils.generateAccessToken(user);
             String refresh = _jwtUtils.generateRefreshToken(user);
 
@@ -152,6 +165,9 @@ public class AuthService implements IAuthService {
         }
         catch(InternalAuthenticationServiceException | BadCredentialsException e){
             throw new UnAuthorizedException("Invalid credentials");
+        }
+        catch(DisabledException e){
+            throw new ForbiddenException("Please verify your email to login");
         }
         catch (RuntimeException e) {
             throw e;
@@ -239,23 +255,135 @@ public class AuthService implements IAuthService {
         }
     }
 
+
+    /**
+     * Send email verification otp email
+     *
+     * @param email The email
+     */
     @Override
     public void sendEmailVerificationOtpEmail(String email) {
+        try{
+            AppUser user = Optional.ofNullable(_userRepository.findByEmail(email))
+                    .orElseThrow(() -> new BadRequestException("Invalid email"));
 
+            if(user.getIsEmailVerified()){
+                throw new BadRequestException("Email is already verified");
+            }
+
+            String otp = HelperUtilMethods.generateOtp();
+            user.setEmailOtp(otp);
+            user.setEmailOtpExpires(LocalDateTime.now().plusMinutes(ApplicationConstants.EMAIL_OTP_EXPIRATION_MINUTES));
+            _emailNotificationService.sendEmailVerificationOtpEmail(email, otp);
+            _userRepository.save(user);
+        } catch (RuntimeException e){
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+
+    /**
+     * Send password reset otp email
+     *
+     * @param email The email
+     */
     @Override
     public void sendPasswordResetOtpEmail(String email) {
+        try {
+            AppUser user = Optional.ofNullable(_userRepository.findByEmail(email))
+                    .orElseThrow(() -> new BadRequestException("Invalid email"));
 
+            if(!user.getIsEmailVerified()){
+                throw new BadRequestException("Please verify your email first");
+            }
+
+            String otp = HelperUtilMethods.generateOtp();
+            user.setPasswordOtp(otp);
+            user.setPasswordOtpExpires(LocalDateTime.now().plusMinutes(ApplicationConstants.PASSWORD_OTP_EXPIRATION_MINUTES));
+            _emailNotificationService.sendPasswordResetOtpEmail(email, otp);
+            _userRepository.save(user);
+        } catch (RuntimeException e){
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+
+    /**
+     * Verify the email
+     *
+     * @param request The request object of type VerifyEmailRequestDto
+     */
     @Override
     public void verifyEmail(VerifyEmailRequestDto request) {
+        try{
+            AppUser user = Optional.ofNullable(_userRepository.findByEmail(request.getEmail()))
+                    .orElseThrow(() -> new BadRequestException("Invalid email"));
 
+            if(!user.getEmailOtp().equals(request.getOtp())){
+                throw new BadRequestException("Invalid OTP");
+            }
+
+            if(user.getEmailOtpExpires().isBefore(LocalDateTime.now())){
+                user.setPasswordOtp(null);
+                user.setPasswordOtpExpires(null);
+                _userRepository.save(user);
+                throw new BadRequestException("OTP has expired");
+            }
+
+            user.setEmailOtp(null);
+            user.setEmailOtpExpires(null);
+            user.setIsEmailVerified(true);
+            _userRepository.save(user);
+        } catch (RuntimeException e){
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+
+    /**
+     * Reset the password
+     *
+     * @param request The request object of type ResetPasswordRequestDto
+     */
     @Override
     public void resetPassword(ResetPasswordRequestDto request) {
+        try{
+            AppUser user = Optional.ofNullable(_userRepository.findByEmail(request.getEmail()))
+                    .orElseThrow(() -> new BadRequestException("Invalid email"));
 
+            if(!user.getPasswordOtp().equals(request.getOtp())){
+                throw new BadRequestException("Invalid OTP");
+            }
+
+            if(user.getPasswordOtpExpires().isBefore(LocalDateTime.now())){
+                user.setPasswordOtp(null);
+                user.setPasswordOtpExpires(null);
+                _userRepository.save(user);
+                throw new BadRequestException("OTP has expired");
+            }
+
+            if(!Objects.equals(request.getPassword(), request.getConfirmPassword())){
+                throw new BadRequestException("Passwords do not match");
+            }
+
+            if(!HelperUtilMethods.isPasswordStrong(request.getPassword())){
+                throw new BadRequestException("Password is not strong enough");
+            }
+
+            user.setPassword(_passwordEncoder.encode(request.getPassword()));
+            user.setPasswordOtp(null);
+            user.setPasswordOtpExpires(null);
+            _userRepository.save(user);
+        } catch (RuntimeException e){
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

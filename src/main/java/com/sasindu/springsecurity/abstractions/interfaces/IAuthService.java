@@ -23,7 +23,6 @@ public interface IAuthService {
      * Login a user
      *
      * @param request LoginRequestDto object
-     * @return Map object
      */
     void login(LoginRequestDto request, HttpServletResponse response);
 
@@ -39,8 +38,8 @@ public interface IAuthService {
     /**
      * Refresh the access token
      *
-     * @param refreshToken String
-     * @return Map object
+     * @param request HttpServletRequest object
+     * @param response HttpServletResponse object
      */
     void refreshToken(HttpServletRequest request, HttpServletResponse response);
 

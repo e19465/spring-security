@@ -49,16 +49,6 @@ public interface IProductService {
      *
      * @return List of Product objects
      */
-    List<Product> getAllProducts();
+    List<Product> getAllProducts(String name, String category);
 
-
-    /**
-     * Get filtered products
-     *
-     * @param name String
-     * @param category String
-     * @param brand String
-     * @return List of Product objects
-     */
-    List<Product> getFilteredProducts(String name, String category, String brand);
 }

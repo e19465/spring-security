@@ -3,9 +3,17 @@ package com.sasindu.springsecurity.helpers;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class HelperUtilMethods {
+    private static final String CHAR_POOL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String CHAR_POOL_DIGITS = "0123456789";
+    private static final int OTP_LENGTH = 6;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     /**
      * This public static method is used to convert a hex string to a byte array
@@ -55,5 +63,36 @@ public class HelperUtilMethods {
                     .orElse(null);
         }
         return null;
+    }
+
+    /**
+     * This method is used to generate an OTP
+     * @return The generated OTP
+     */
+    public static String generateOtp() {
+        List<Character> otpList = new ArrayList<>();
+
+        // Add 2 random letters to the list
+        for (int i = 0; i < 2; i++) {
+            int index = RANDOM.nextInt(CHAR_POOL_LETTERS.length());
+            otpList.add(CHAR_POOL_LETTERS.charAt(index));
+        }
+
+        // Add 4 random digits to the list
+        for (int i = 0; i < 4; i++) {
+            int index = RANDOM.nextInt(CHAR_POOL_DIGITS.length());
+            otpList.add(CHAR_POOL_DIGITS.charAt(index));
+        }
+
+        // Shuffle the list to ensure random order
+        Collections.shuffle(otpList);
+
+        // Convert the list back to a string
+        StringBuilder otp = new StringBuilder();
+        for (Character c : otpList) {
+            otp.append(c);
+        }
+
+        return otp.toString();
     }
 }

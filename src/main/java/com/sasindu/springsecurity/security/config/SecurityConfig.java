@@ -143,7 +143,7 @@ public class SecurityConfig {
             httpSecurity
                     .cors(Customizer.withDefaults())
                     .csrf(AbstractHttpConfigurer::disable)
-                    .sessionManagement(session -> session       .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(req ->
                             req.requestMatchers(ApplicationConstants.PUBLIC_URLS).permitAll()
                                     .anyRequest().authenticated()

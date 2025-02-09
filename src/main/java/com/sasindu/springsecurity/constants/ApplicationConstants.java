@@ -8,7 +8,13 @@ import org.springframework.stereotype.Component;
 @Data
 public class ApplicationConstants {
 
-    //! 1. Configure Public URLs
+    //! EMAIL SENDING CONFIGURATION
+    public static final String EMAIL_VERIFY_TEMPLATE = "emailVerifyTemplate";
+    public static final String PASSWORD_RESET_TEMPLATE = "passwordResetTemplate";
+    public static final int EMAIL_OTP_EXPIRATION_MINUTES = 30;
+    public static final int PASSWORD_OTP_EXPIRATION_MINUTES = 30;
+
+    //! Configure Public URLs
     private static final String[] PUBLIC_APPLICATION_URLS = new String[]{
             "/static/**",
             "/favicon.ico",
@@ -22,7 +28,8 @@ public class ApplicationConstants {
     // Combine multiple arrays into one
     public static final String[] PUBLIC_URLS = combineArrays(PUBLIC_APPLICATION_URLS, PUBLIC_API_SHARED_URLS);
 
-    //! 2. CORS Configuration
+
+    //!  CORS Configuration
     private static String[] CORS_ALLOWED_ORIGINS;
     private static String[] CORS_ALLOWED_METHODS;
     private static String[] CORS_ALLOWED_HEADERS;

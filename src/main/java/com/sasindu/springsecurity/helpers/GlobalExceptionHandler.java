@@ -55,5 +55,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED.value())
                 .body(new ApiResponse(message, null, null));
     }
-
 }

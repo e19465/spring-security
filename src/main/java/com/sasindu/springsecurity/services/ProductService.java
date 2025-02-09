@@ -34,12 +34,7 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public List<Product> getAllProducts() {
-        return List.of();
-    }
-
-    @Override
-    public List<Product> getFilteredProducts(String name, String category, String brand) {
+    public List<Product> getAllProducts(String name, String category) {
         return List.of();
     }
 }
