@@ -6,10 +6,12 @@ import com.sasindu.springsecurity.security.jwt.JWTAuthEntryPoint;
 import com.sasindu.springsecurity.security.jwt.JWTAuthFilter;
 import com.sasindu.springsecurity.security.services.AppUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,6 +22,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +36,30 @@ public class SecurityConfig {
     private final AppUserDetailsService _userDetailsService;
     private final JWTAuthEntryPoint _jwtAuthEntryPoint;
 
+
+
+    /**
+     * CookieSameSiteSupplier bean - setting the SameSite attribute to Strict
+     *
+     * @return CookieSameSiteSupplier object
+     */
+    @Bean
+    public CookieSameSiteSupplier cookieSameSiteSupplier() {
+        return CookieSameSiteSupplier.ofStrict();
+    }
+
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(ApplicationConstants.getCorsAllowedOrigins()));
+        configuration.setAllowedMethods(Arrays.asList(ApplicationConstants.getCorsAllowedMethods()));
+        configuration.setAllowedHeaders(Arrays.asList(ApplicationConstants.getCorsAllowedHeaders()));
+        configuration.setAllowCredentials(ApplicationConstants.isCorsAllowCredentials());
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     /**
      * Password encoder bean - use BCryptPasswordEncoder
@@ -105,6 +136,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity){
         try{
             httpSecurity
+                    .cors(Customizer.withDefaults())
                     .csrf(AbstractHttpConfigurer::disable)
                     .sessionManagement(session -> session       .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(req ->
