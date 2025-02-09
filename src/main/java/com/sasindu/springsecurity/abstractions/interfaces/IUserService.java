@@ -2,7 +2,7 @@ package com.sasindu.springsecurity.abstractions.interfaces;
 
 import com.sasindu.springsecurity.abstractions.dto.request.user.UpdateUserPasswordRequestDto;
 import com.sasindu.springsecurity.abstractions.dto.request.user.UpdateUserRequestDto;
-import org.springframework.security.core.userdetails.User;
+import com.sasindu.springsecurity.entities.AppUser;
 
 public interface IUserService {
 
@@ -12,7 +12,7 @@ public interface IUserService {
      * @param id Long object
      * @return User object
      */
-    User getUserAccountDetailsById(Long id);
+    AppUser getUserAccountDetailsById(Long id);
 
 
     /**
@@ -22,7 +22,7 @@ public interface IUserService {
      * @param id Long object
      * @return User object
      */
-    User updateUserAccount(UpdateUserRequestDto request, Long id);
+    AppUser updateUserAccount(UpdateUserRequestDto request, Long id);
 
 
     /**

@@ -4,20 +4,37 @@ package com.sasindu.springsecurity.services;
 import com.sasindu.springsecurity.abstractions.dto.request.user.UpdateUserPasswordRequestDto;
 import com.sasindu.springsecurity.abstractions.dto.request.user.UpdateUserRequestDto;
 import com.sasindu.springsecurity.abstractions.interfaces.IUserService;
+import com.sasindu.springsecurity.entities.AppUser;
+import com.sasindu.springsecurity.repository.IUserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements IUserService {
+    private final IUserRepository _userRepository;
+
+
+    /**
+     * Gets the details of a user account by id
+     * @param id - User id
+     * @return AppUser
+     */
     @Override
-    public User getUserAccountDetailsById(Long id) {
-        return null;
+    public AppUser getUserAccountDetailsById(Long id) {
+        try{
+            return _userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+        } catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
-    public User updateUserAccount(UpdateUserRequestDto request, Long id) {
+    public AppUser updateUserAccount(UpdateUserRequestDto request, Long id) {
         return null;
     }
 
