@@ -49,6 +49,11 @@ public class SecurityConfig {
     }
 
 
+    /**
+     * CorsConfigurationSource bean - setting the CORS configuration
+     *
+     * @return CorsConfigurationSource object
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
