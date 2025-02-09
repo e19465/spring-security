@@ -23,11 +23,12 @@ public class UserOtp {
     @Enumerated(EnumType.STRING)
     private OtpEmailType type;
 
+    @Column (length = 6)
     private String otp;
 
     private LocalDateTime expires;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn (name = "user_id", nullable = false)
     private AppUser user;
 
@@ -38,7 +39,7 @@ public class UserOtp {
      * @return boolean
      */
     public boolean isOtpCorrect(String otp) {
-        return this.otp.equals(otp);
+        return !this.otp.equals(otp);
     }
 
     /**
@@ -47,5 +48,19 @@ public class UserOtp {
      */
     public boolean isOtpExpired() {
         return LocalDateTime.now().isAfter(expires);
+    }
+
+
+    /**
+     * Sets the OTP
+     * @param minutes - Time to expire
+     * @param otp - OTP to set
+     * @param type - Type of the OTP
+     */
+    public void setOtpProperties(int minutes, String otp, OtpEmailType type, AppUser user) {
+        this.expires = LocalDateTime.now().plusMinutes(minutes);
+        this.otp = otp;
+        this.type = type;
+        this.user = user;
     }
 }

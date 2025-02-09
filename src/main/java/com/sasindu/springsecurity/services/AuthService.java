@@ -6,9 +6,12 @@ import com.sasindu.springsecurity.abstractions.dto.request.auth.RegisterUserRequ
 import com.sasindu.springsecurity.abstractions.dto.request.auth.ResetPasswordRequestDto;
 import com.sasindu.springsecurity.abstractions.dto.request.auth.VerifyEmailRequestDto;
 import com.sasindu.springsecurity.abstractions.enums.AppUserRoles;
+import com.sasindu.springsecurity.abstractions.enums.OtpEmailType;
 import com.sasindu.springsecurity.abstractions.interfaces.IAuthService;
+import com.sasindu.springsecurity.abstractions.interfaces.IUserOtpService;
 import com.sasindu.springsecurity.constants.ApplicationConstants;
 import com.sasindu.springsecurity.entities.AppUser;
+import com.sasindu.springsecurity.entities.UserOtp;
 import com.sasindu.springsecurity.exceptions.BadRequestException;
 import com.sasindu.springsecurity.exceptions.ForbiddenException;
 import com.sasindu.springsecurity.exceptions.UnAuthorizedException;
@@ -26,7 +29,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -42,6 +44,7 @@ public class AuthService implements IAuthService {
     private final PasswordEncoder _passwordEncoder;
     private final AuthenticationManager _authenticationManager;
     private final EmailNotificationService _emailNotificationService;
+    private final IUserOtpService _userOtpService;
 
     @Value("${application.environment}")
     String environment;
@@ -114,13 +117,20 @@ public class AuthService implements IAuthService {
             user.setPassword(_passwordEncoder.encode(request.getPassword()));
             user.setEmail(request.getEmail());
             user.setRole(AppUserRoles.ROLE_USER.toString());
-            user.setEmailOtp(otp);
 
-            System.out.println("OTP: " + otp);
+            // save the user
+            AppUser savedUser =  _userRepository.save(user);
 
-            user.setEmailOtpExpires(LocalDateTime.now().plusMinutes(ApplicationConstants.EMAIL_OTP_EXPIRATION_MINUTES));
+            // set the otp
+            UserOtp userOtp = new UserOtp();
+            userOtp.setOtpProperties(ApplicationConstants.EMAIL_OTP_EXPIRATION_MINUTES, otp, OtpEmailType.EMAIL, savedUser);
+            _userOtpService.saveOtp(userOtp);
+
+            // send the email
             _emailNotificationService.sendEmailVerificationOtpEmail(request.getEmail(), otp);
-            return _userRepository.save(user);
+
+            // return the saved user
+            return savedUser;
         } catch (RuntimeException e){
             throw e;
         } catch (Exception e) {
@@ -194,7 +204,6 @@ public class AuthService implements IAuthService {
             throw new RuntimeException(e);
         }
     }
-
 
 
     /**
@@ -272,8 +281,17 @@ public class AuthService implements IAuthService {
             }
 
             String otp = HelperUtilMethods.generateOtp();
-            user.setEmailOtp(otp);
-            user.setEmailOtpExpires(LocalDateTime.now().plusMinutes(ApplicationConstants.EMAIL_OTP_EXPIRATION_MINUTES));
+
+            // set the otp
+            UserOtp foundOtp = _userOtpService.findByTypeAndUserId(OtpEmailType.EMAIL, user.getId());
+            if(foundOtp != null){
+                _userOtpService.deleteByTypeAndUserId(OtpEmailType.EMAIL, user.getId());
+            }
+            UserOtp userOtp = new UserOtp();
+            userOtp.setOtpProperties(ApplicationConstants.EMAIL_OTP_EXPIRATION_MINUTES, otp, OtpEmailType.EMAIL, user);
+            _userOtpService.saveOtp(userOtp);
+
+            // send the email and save the user
             _emailNotificationService.sendEmailVerificationOtpEmail(email, otp);
             _userRepository.save(user);
         } catch (RuntimeException e){
@@ -300,8 +318,17 @@ public class AuthService implements IAuthService {
             }
 
             String otp = HelperUtilMethods.generateOtp();
-            user.setPasswordOtp(otp);
-            user.setPasswordOtpExpires(LocalDateTime.now().plusMinutes(ApplicationConstants.PASSWORD_OTP_EXPIRATION_MINUTES));
+
+            // set the otp
+            UserOtp foundOtp = _userOtpService.findByTypeAndUserId(OtpEmailType.PASSWORD, user.getId());
+            if(foundOtp != null){
+                _userOtpService.deleteByTypeAndUserId(OtpEmailType.PASSWORD, user.getId());
+            }
+            UserOtp userOtp = new UserOtp();
+            userOtp.setOtpProperties(ApplicationConstants.PASSWORD_OTP_EXPIRATION_MINUTES, otp, OtpEmailType.PASSWORD, user);
+            _userOtpService.saveOtp(userOtp);
+
+            // send the email and save the user
             _emailNotificationService.sendPasswordResetOtpEmail(email, otp);
             _userRepository.save(user);
         } catch (RuntimeException e){
@@ -323,19 +350,29 @@ public class AuthService implements IAuthService {
             AppUser user = Optional.ofNullable(_userRepository.findByEmail(request.getEmail()))
                     .orElseThrow(() -> new BadRequestException("Invalid email"));
 
-            if(!user.getEmailOtp().equals(request.getOtp())){
+            if(user.getIsEmailVerified()){
+                throw new BadRequestException("Email is already verified");
+            }
+
+            UserOtp foundOtp = _userOtpService.findByTypeAndUserId(OtpEmailType.EMAIL, user.getId());
+            if(foundOtp == null){
+                throw new BadRequestException("No OTP found, Please request a new OTP");
+            }
+
+            if(foundOtp.isOtpCorrect(request.getOtp())){
                 throw new BadRequestException("Invalid OTP");
             }
 
-            if(user.getEmailOtpExpires().isBefore(LocalDateTime.now())){
-                user.setPasswordOtp(null);
-                user.setPasswordOtpExpires(null);
-                _userRepository.save(user);
+            if(foundOtp.isOtpExpired()){
+                _userOtpService.deleteByTypeAndUserId(OtpEmailType.EMAIL, user.getId());
                 throw new BadRequestException("OTP has expired");
             }
 
-            user.setEmailOtp(null);
-            user.setEmailOtpExpires(null);
+
+            // delete the otp and update the user
+            _userOtpService.deleteByTypeAndUserId(OtpEmailType.EMAIL, user.getId());
+
+            // update the user and save
             user.setIsEmailVerified(true);
             _userRepository.save(user);
         } catch (RuntimeException e){
@@ -357,14 +394,17 @@ public class AuthService implements IAuthService {
             AppUser user = Optional.ofNullable(_userRepository.findByEmail(request.getEmail()))
                     .orElseThrow(() -> new BadRequestException("Invalid email"));
 
-            if(!user.getPasswordOtp().equals(request.getOtp())){
+            UserOtp foundOtp = _userOtpService.findByTypeAndUserId(OtpEmailType.PASSWORD, user.getId());
+            if(foundOtp == null){
+                throw new BadRequestException("No OTP found, Please request a new OTP");
+            }
+
+            if(foundOtp.isOtpCorrect(request.getOtp())){
                 throw new BadRequestException("Invalid OTP");
             }
 
-            if(user.getPasswordOtpExpires().isBefore(LocalDateTime.now())){
-                user.setPasswordOtp(null);
-                user.setPasswordOtpExpires(null);
-                _userRepository.save(user);
+            if(foundOtp.isOtpExpired()){
+                _userOtpService.deleteByTypeAndUserId(OtpEmailType.PASSWORD, user.getId());
                 throw new BadRequestException("OTP has expired");
             }
 
@@ -376,9 +416,10 @@ public class AuthService implements IAuthService {
                 throw new BadRequestException("Password is not strong enough");
             }
 
+            // delete the otp and update the user
+            _userOtpService.deleteByTypeAndUserId(OtpEmailType.PASSWORD, user.getId());
+
             user.setPassword(_passwordEncoder.encode(request.getPassword()));
-            user.setPasswordOtp(null);
-            user.setPasswordOtpExpires(null);
             _userRepository.save(user);
         } catch (RuntimeException e){
             throw e;

@@ -11,7 +11,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,18 +41,6 @@ public class AppUser implements UserDetails {
 
     @Column (nullable = false, length = 50)
     private String role;
-
-    @Column(length = 6)
-    private String emailOtp;
-
-    @Column(length = 6)
-    private String passwordOtp;
-
-    @Column
-    private LocalDateTime emailOtpExpires;
-
-    @Column
-    private LocalDateTime passwordOtpExpires;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
