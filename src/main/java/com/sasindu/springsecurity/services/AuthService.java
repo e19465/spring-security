@@ -428,4 +428,63 @@ public class AuthService implements IAuthService {
             throw new RuntimeException(e);
         }
     }
+
+
+    /**
+     * Check if the logged in user is the same as the id
+     *
+     * @param id The id
+     * @return Boolean
+     */
+    @Override
+    public boolean checkLoggedInUserWithId(Long id) {
+        try{
+         AppUser loggedInUser = getAuthenticatedUser();
+            return Objects.equals(loggedInUser.getId(), id);
+        } catch (RuntimeException e){
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
+     * Check if the password is correct
+     *
+     * @param user The user object
+     * @param password The password
+     * @return Boolean
+     */
+    @Override
+    public boolean isPasswordCorrect(AppUser user, String password) {
+        try{
+            return _passwordEncoder.matches(password, user.getPassword());
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
+     * Check Authenticated user is admin or not
+     * @return tru: if admin, else false
+     */
+    @Override
+    public boolean isAuthenticatedUserAdmin() {
+        try{
+            AppUser loggedInUser = getAuthenticatedUser();
+            return loggedInUser.getAuthorities()
+                    .stream()
+                    .anyMatch(auth -> "ROLE_ADMIN".equals(auth.getAuthority()));
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 }

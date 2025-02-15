@@ -4,6 +4,8 @@ import com.sasindu.springsecurity.abstractions.dto.request.user.UpdateUserPasswo
 import com.sasindu.springsecurity.abstractions.dto.request.user.UpdateUserRequestDto;
 import com.sasindu.springsecurity.entities.AppUser;
 
+import java.util.List;
+
 public interface IUserService {
 
     /**
@@ -40,4 +42,12 @@ public interface IUserService {
      * @param id Long object
      */
     void deleteUserAccountById(Long id);
+
+
+    /**
+     * Get all users for admin
+     *
+     * @return List of AppUser objects
+     */
+    List<AppUser> getAllUsersForAdmin();
 }

@@ -80,4 +80,31 @@ public interface IAuthService {
      * @param request - ResetPasswordRequestDto object
      */
     void resetPassword(ResetPasswordRequestDto request);
+
+
+    /**
+     * Check if the logged in user is the same as the user with the given id
+     *
+     * @param id - Long
+     * @return boolean
+     */
+    boolean checkLoggedInUserWithId(Long id);
+
+
+    /**
+     * Check if the given password is correct
+     *
+     * @param password - String
+     * @param user - AppUser
+     * @return boolean
+     */
+    boolean isPasswordCorrect(AppUser user, String password);
+
+
+    /**
+     * Check whether authenticated user is admin or not
+     *
+     * @return true: if admin, else return false
+     */
+    boolean isAuthenticatedUserAdmin();
 }
