@@ -23,7 +23,6 @@ This project is a **Spring Boot** backend API that demonstrates a **complete aut
 - **MySQL** (Relational database for user management)
 - **Spring Data JPA** (Database interaction)
 - **Lombok** (Java library for boilerplate code reduction)
-- **Spring data JPA** (Database interaction)
 - **Maven** (Dependency management)
 - **Postman** (API testing)
 - **IntelliJ IDEA** (IDE)
